@@ -9,12 +9,26 @@ test.describe('Rotom-Calc — load and shell', () => {
     await expect(page.locator('#view-teams')).toHaveClass(/active/);
   });
 
-  test('all five tabs are present and clickable', async ({ page }) => {
+  test('visible nav tabs are present and clickable', async ({ page }) => {
     await gotoApp(page);
-    const tabs = ['teams', 'calc', 'bench', 'stats', 'types'];
+    // "bench" is intentionally excluded: in the unified-DC-BM build the app hides
+    // the standalone Benchmarks nav button at runtime and folds it into the
+    // Damage Calculator tab as a sub-tab instead (see the app's own UNIFIED_DC_BM
+    // branch). Asserting it's visible here would be testing against a build
+    // configuration the app doesn't currently ship with.
+    const tabs = ['teams', 'calc', 'stats', 'types'];
     for (const tab of tabs) {
       await expect(page.locator(`.tab-btn[data-tab="${tab}"]`)).toBeVisible();
     }
+  });
+
+  test('Benchmarks nav button is hidden, folded into the Calculator tab', async ({ page }) => {
+    await gotoApp(page);
+    await expect(page.locator('.tab-btn[data-tab="bench"]')).toBeHidden();
+    // When folded in, the Calculator tab is relabeled "Calculators" to reflect
+    // that it now covers multiple sub-tabs (Damage Spreads, Full Matchup, Speed
+    // Check, To KO, To Survive — Benchmarks among them).
+    await expect(page.locator('.tab-btn[data-tab="calc"]')).toHaveText('Calculators');
   });
 });
 
